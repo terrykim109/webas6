@@ -36,7 +36,7 @@ let strategy = new JwtStrategy(jwtOptions, function (jwt_payload, next) {
 passport.use(strategy);
 app.use(passport.initialize());
 
-const HTTP_PORT = process.env.PORT || 8080;
+// const HTTP_PORT = process.env.PORT || 8080;
 
 app.use(express.json());
 app.use(cors());
