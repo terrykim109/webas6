@@ -42,7 +42,7 @@ app.use(passport.initialize());
 
 app.use(express.json());
 app.use(cors());
-app.use(express.static(__dirname + '/public'));
+// app.use(express.static(__dirname + '/public'));
 // app.set('views', __dirname + '/views'); 
 
 app.get("/", (req, res) => {
