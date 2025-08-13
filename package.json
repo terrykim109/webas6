@@ -8,11 +8,10 @@
   },
   "dependencies": {
     "cors": "^2.8.5",
-    "express": "^4.17.1",
     "dotenv": "^8.2.0",
-    "jsonwebtoken": "^8.5.1",
-    "passport": "^0.4.1",
-    "passport-jwt": "^4.0.0",
-    "your-other-dependencies": "x.x.x"
+    "express": "^4.17.1",
+    "jsonwebtoken": "^9.0.2",
+    "passport": "^0.7.0",
+    "passport-jwt": "^4.0.0"
   }
 }
