@@ -14,24 +14,47 @@ let JwtStrategy = passportJWT.Strategy;
 let ExtractJwt = passportJWT.ExtractJwt;
 
 // Jwt options
+// let jwtOptions = {
+//     jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+//     secretOrKey: process.env.JWT_SECRET 
+// };
 let jwtOptions = {
-    jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-    secretOrKey: process.env.JWT_SECRET 
+  jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+  secretOrKey: process.env.JWT_SECRET,
+  ignoreExpiration: false // Ensure expiration is checked
 };
 
 // Jwt strategy
-let strategy = new JwtStrategy(jwtOptions, function (jwt_payload, next) {
-    console.log('payload received', jwt_payload);
+// let strategy = new JwtStrategy(jwtOptions, function (jwt_payload, next) {
+//     console.log('payload received', jwt_payload);
 
-    if (jwt_payload) {
-        next(null, {
-            _id: jwt_payload._id,
-            userName: jwt_payload.userName
-        });
-    } else {
-        next(null, false);
-    }
+//     if (jwt_payload) {
+//         next(null, {
+//             _id: jwt_payload._id,
+//             userName: jwt_payload.userName
+//         });
+//     } else {
+//         next(null, false);
+//     }
+// });
+
+// Jwt strategy
+let strategy = new JwtStrategy(jwtOptions, function (jwt_payload, next) {
+  console.log('payload received', jwt_payload);
+  
+  // Validate payload structure
+  if (!jwt_payload || !jwt_payload._id || !jwt_payload.userName) {
+    console.error('Invalid JWT payload:', jwt_payload);
+    return next(new Error("Invalid token payload"), false);
+  }
+  
+  next(null, {
+    _id: jwt_payload._id,
+    userName: jwt_payload.userName
+  });
 });
+
+
 
 passport.use(strategy);
 app.use(passport.initialize());
@@ -133,6 +156,20 @@ app.post("/api/user/login", async (req, res) => {
   }
 });
 
+// api/index.js
+app.post("/api/user/refresh", passport.authenticate('jwt', { session: false }), (req, res) => {
+  try {
+    const payload = {
+      _id: req.user._id,
+      userName: req.user.userName
+    };
+    
+    const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: "1h" });
+    res.json({ token });
+  } catch (error) {
+    res.status(500).json({ message: "Token refresh failed" });
+  }
+});
 
 //Get /api/user/favourites Route with Passport Middleware function as an additional parameter for Jwt Authentication
 app.get("/api/user/favourites", passport.authenticate('jwt', { session: false }),(req, res) => {
