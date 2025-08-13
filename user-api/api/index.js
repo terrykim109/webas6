@@ -88,20 +88,57 @@ app.get("/", (req, res) => {
 //     });
 // });
 
-app.post("/api/user/login", (req, res) => {
-    userService.checkUser(req.body)
-    .then((user) => {
-        let payload = {
-            _id: user._id,
-            userName: user.userName
-        };
-        let token = jwt.sign(payload, process.env.JWT_SECRET);
-        // Return token directly in the response
-        res.json({ token: token });
-    }).catch(msg => {
-        res.status(422).json({ "message": msg });
+// app.post("/api/user/login", (req, res) => {
+//     userService.checkUser(req.body)
+//     .then((user) => {
+//         let payload = {
+//             _id: user._id,
+//             userName: user.userName
+//         };
+//         let token = jwt.sign(payload, process.env.JWT_SECRET);
+//         // Return token directly in the response
+//         res.json({ token: token });
+//     }).catch(msg => {
+//         res.status(422).json({ "message": msg });
+//     });
+// });
+
+app.post("/api/user/login", async (req, res) => {
+  try {
+    const { userName, password } = req.body;
+
+    if (!userName || !password) {
+      return res.status(400).json({ message: "Username and password are required" });
+    }
+
+    // Find user in DB
+    const user = await userService.checkUser({ userName, password });
+
+    if (!user) {
+      return res.status(401).json({ message: "Invalid username or password" });
+    }
+
+    // Create JWT payload
+    const payload = {
+      _id: user._id,
+      userName: user.userName
+    };
+
+    // Sign JWT
+    const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: "1h" });
+
+    // Return token and message
+    res.json({
+      message: "Login successful",
+      token: token
     });
+
+  } catch (err) {
+    // Handle errors from userService.checkUser or bcrypt.compare
+    res.status(422).json({ message: err.toString() });
+  }
 });
+
 
 //Get /api/user/favourites Route with Passport Middleware function as an additional parameter for Jwt Authentication
 app.get("/api/user/favourites", passport.authenticate('jwt', { session: false }),(req, res) => {
