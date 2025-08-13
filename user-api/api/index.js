@@ -426,10 +426,22 @@ app.use((req, res, next) => {
   next();
 });
 
-// Base routes
-app.get("/api", (req, res) => {
-  console.log("✅ /api endpoint hit");
-  res.json({ message: "API Listening" });
+console.log("🔄 Adding root route handler");
+
+// Root route - Important for Vercel deployment
+app.get("/", (req, res) => {
+  console.log("🌐 Root endpoint accessed");
+  res.json({
+    message: "Welcome to the API!",
+    endpoints: {
+      health: "/api/health",
+      register: "/api/user/register",
+      login: "/api/user/login",
+      docs: "Check documentation for protected routes"
+    },
+    deployment: process.env.VERCEL ? "Vercel" : "Local",
+    timestamp: new Date().toISOString()
+  });
 });
 
 app.get("/api/health", (req, res) => {
