@@ -173,6 +173,114 @@
 //     });
 // }
 
+
+
+
+// const mongoose = require("mongoose");
+// const bcrypt = require("bcryptjs");
+
+// let mongoDBConnectionString = process.env.MONGO_URL;
+
+// let Schema = mongoose.Schema;
+
+// let userSchema = new Schema({
+//   userName: {
+//     type: String,
+//     unique: true,
+//   },
+//   password: String,
+//   favourites: [String],
+//   history: [String],
+// });
+
+// let User;
+// let isConnected = false;
+
+// module.exports.connect = function () {
+//   return new Promise(function (resolve, reject) {
+//     if (isConnected) {
+//       console.log("Already connected to the database.");
+//       return resolve();
+//     }
+    
+//     // Check if mongoDBConnectionString is present
+//     if (!mongoDBConnectionString) {
+//       console.error("MONGO_URL is not defined in the environment variables!");
+//       return reject("MONGO_URL is not defined");
+//     }
+
+//     mongoose
+//       .connect(mongoDBConnectionString, { useNewUrlParser: true, useUnifiedTopology: true })
+//       .then(() => {
+//         User = mongoose.model("users", userSchema);
+//         isConnected = true;
+//         console.log("Successfully connected to the database.");
+//         resolve();
+//       })
+//       .catch((err) => {
+//         console.error("Failed to connect to the database:", err.message);
+//         reject(err);
+//       });
+//   });
+// };
+
+// module.exports.registerUser = function (userData) {
+//   return new Promise(function (resolve, reject) {
+//     if (userData.password !== userData.password2) {
+//       return reject("Passwords do not match");
+//     }
+
+//     bcrypt
+//       .hash(userData.password, 10)
+//       .then((hash) => {
+//         // Create a new user object with only the fields from the schema
+//         const newUser = new User({
+//           userName: userData.userName,
+//           password: hash,
+//           favourites: [],
+//           history: []
+//         });
+
+//         newUser
+//           .save()
+//           .then(() => {
+//             resolve("User " + userData.userName + " successfully registered");
+//           })
+//           .catch((err) => {
+//             if (err.code === 11000) {
+//               reject("User Name already taken");
+//             } else {
+//               reject("There was an error creating the user: " + err.message);
+//             }
+//           });
+//       })
+//       .catch((err) => reject("Error hashing password: " + err.message));
+//   });
+// };
+
+// module.exports.checkUser = function (userData) {
+//   return new Promise(function (resolve, reject) {
+//     User.findOne({ userName: userData.userName })
+//       .exec()
+//       .then(user => {
+//         if (!user) {
+//           return reject("Unable to find user " + userData.userName);
+//         }
+//         bcrypt.compare(userData.password, user.password)
+//           .then(res => {
+//             if (res === true) {
+//               resolve(user);
+//             } else {
+//               reject("Incorrect password for user " + userData.userName);
+//             }
+//           })
+//           .catch(err => reject("Error comparing password: " + err.message));
+//       }).catch(err => {
+//         reject("Error finding user: " + err.message);
+//       });
+//   });
+// };
+
 const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
 
@@ -196,62 +304,54 @@ let isConnected = false;
 module.exports.connect = function () {
   return new Promise(function (resolve, reject) {
     if (isConnected) {
-      console.log("Already connected to the database.");
       return resolve();
-    }
-    
-    // Check if mongoDBConnectionString is present
-    if (!mongoDBConnectionString) {
-      console.error("MONGO_URL is not defined in the environment variables!");
-      return reject("MONGO_URL is not defined");
     }
 
     mongoose
-      .connect(mongoDBConnectionString, { useNewUrlParser: true, useUnifiedTopology: true })
+      .connect(mongoDBConnectionString, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+      })
       .then(() => {
         User = mongoose.model("users", userSchema);
         isConnected = true;
-        console.log("Successfully connected to the database.");
         resolve();
       })
-      .catch((err) => {
-        console.error("Failed to connect to the database:", err.message);
-        reject(err);
-      });
+      .catch((err) => reject(err));
   });
 };
 
 module.exports.registerUser = function (userData) {
   return new Promise(function (resolve, reject) {
     if (userData.password !== userData.password2) {
-      return reject("Passwords do not match");
+      reject("Passwords do not match");
+      return;
     }
 
     bcrypt
       .hash(userData.password, 10)
       .then((hash) => {
-        // Create a new user object with only the fields from the schema
         const newUser = new User({
           userName: userData.userName,
-          password: hash,
+          password: hash, // Store the hashed password
           favourites: [],
-          history: []
+          history: [],
         });
 
         newUser
           .save()
           .then(() => {
-            resolve("User " + userData.userName + " successfully registered");
+            resolve(`User ${userData.userName} successfully registered`);
           })
           .catch((err) => {
             if (err.code === 11000) {
               reject("User Name already taken");
             } else {
-              reject("There was an error creating the user: " + err.message);
+              reject(`There was an error creating the user: ${err.message}`);
             }
           });
       })
-      .catch((err) => reject("Error hashing password: " + err.message));
+      .catch((err) => reject(`Password hashing failed: ${err.message}`));
   });
 };
 
@@ -259,21 +359,26 @@ module.exports.checkUser = function (userData) {
   return new Promise(function (resolve, reject) {
     User.findOne({ userName: userData.userName })
       .exec()
-      .then(user => {
+      .then((user) => {
         if (!user) {
-          return reject("Unable to find user " + userData.userName);
+          return reject(`Unable to find user ${userData.userName}`);
         }
+
+        // Compare hashed password with provided password
         bcrypt.compare(userData.password, user.password)
-          .then(res => {
-            if (res === true) {
+          .then((match) => {
+            if (match) {
               resolve(user);
             } else {
-              reject("Incorrect password for user " + userData.userName);
+              reject(`Incorrect password for user ${userData.userName}`);
             }
           })
-          .catch(err => reject("Error comparing password: " + err.message));
-      }).catch(err => {
-        reject("Error finding user: " + err.message);
+          .catch((err) => {
+            reject(`Password comparison failed: ${err.message}`);
+          });
+      })
+      .catch((err) => {
+        reject(`Database query failed: ${err.message}`);
       });
   });
 };
