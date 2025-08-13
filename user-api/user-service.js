@@ -321,37 +321,129 @@ module.exports.connect = function () {
   });
 };
 
+// module.exports.registerUser = function (userData) {
+//   return new Promise(function (resolve, reject) {
+//     if (userData.password !== userData.password2) {
+//       reject("Passwords do not match");
+//       return;
+//     }
+
+//     User.findOne({ userName: userData.userName })
+//       .then(existingUser => {
+//         if (existingUser) {
+//           reject("User Name already taken");
+//           return;
+//         }
+
+    // bcrypt
+    //   .hash(userData.password, 10)
+    //   .then((hash) => {
+    //     const newUser = new User({
+    //       userName: userData.userName,
+    //       password: hash, // Store the hashed password
+    //       favourites: [],
+    //       history: [],
+    //     });
+
+    //     newUser
+    //       .save()
+    //       .then(() => {
+    //         resolve(`User ${userData.userName} successfully registered`);
+    //       })
+    //       .catch((err) => {
+    //         if (err.code === 11000) {
+    //           reject("User Name already taken");
+    //         } else {
+    //           reject(`There was an error creating the user: ${err.message}`);
+    //         }
+    //       });
+    //   })
+    //   .catch((err) => reject(`Password hashing failed: ${err.message}`));
+//             bcrypt.hash(userData.password, 10)
+//           .then((hash) => {
+//             const newUser = new User({
+//               userName: userData.userName,
+//               password: hash,
+//               favourites: [],
+//               history: [],
+//             });
+
+//             newUser.save()
+//               .then(() => resolve(`User ${userData.userName} successfully registered`))
+//               .catch(err => reject(`There was an error creating the user: ${err}`));
+//           })
+//       })
+//       .catch(err => reject(`Error checking user: ${err}`));
+//   });
+// };
+
+// module.exports.registerUser = function (userData) {
+//   return new Promise(function (resolve, reject) {
+//     if (userData.password !== userData.password2) {
+//       return reject("Passwords do not match");
+//     }
+
+//     User.findOne({ userName: userData.userName })
+//       .then(existingUser => {
+//         if (existingUser) {
+//           return reject("User Name already taken");
+//         }
+
+//         bcrypt.hash(userData.password, 10)
+//           .then(hash => {
+//             const newUser = new User({
+//               userName: userData.userName,
+//               password: hash,
+//               favourites: [],
+//               history: [],
+//             });
+
+//             newUser.save()
+//               .then(() => resolve(`User ${userData.userName} registered`))
+//               .catch(err => reject(`Error saving user: ${err}`));
+//           })
+//           .catch(err => reject(`Password hashing failed: ${err}`));
+//       })
+//       .catch(err => reject(`Database error: ${err}`));
+//   });
+// };
+
 module.exports.registerUser = function (userData) {
   return new Promise(function (resolve, reject) {
     if (userData.password !== userData.password2) {
-      reject("Passwords do not match");
-      return;
+      return reject("Passwords do not match");
     }
 
-    bcrypt
-      .hash(userData.password, 10)
-      .then((hash) => {
-        const newUser = new User({
-          userName: userData.userName,
-          password: hash, // Store the hashed password
-          favourites: [],
-          history: [],
-        });
+    // Check if username already exists
+    User.findOne({ userName: userData.userName })
+      .then(existingUser => {
+        if (existingUser) {
+          return reject("User Name already taken");
+        }
 
-        newUser
-          .save()
-          .then(() => {
-            resolve(`User ${userData.userName} successfully registered`);
+        bcrypt.hash(userData.password, 10)
+          .then(hash => {
+            const newUser = new User({
+              userName: userData.userName,
+              password: hash,
+              favourites: [],
+              history: [],
+            });
+
+            newUser.save()
+              .then(() => resolve(`User ${userData.userName} successfully registered`))
+              .catch(err => {
+                // Handle duplicate even after check (race condition)
+                if (err.code === 11000) {
+                  reject("User Name already taken");
+                } else {
+                  reject(`There was an error creating the user: ${err.message}`);
+                }
+              });
           })
-          .catch((err) => {
-            if (err.code === 11000) {
-              reject("User Name already taken");
-            } else {
-              reject(`There was an error creating the user: ${err.message}`);
-            }
-          });
+          .catch(err => reject(`Password hashing failed: ${err.message}`));
       })
-      .catch((err) => reject(`Password hashing failed: ${err.message}`));
+      .catch(err => reject(`Database query failed: ${err.message}`));
   });
 };
 
