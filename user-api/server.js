@@ -49,11 +49,11 @@ app.get("/", (req, res) => {
   res.json({ message: "API Listening" });
 });
 
-app.get("/api/health", (req, res) => {
-  res.json({ status: "Server is running!" });
-});
+// app.get("/health", (req, res) => {
+//   res.json({ status: "Server is running!" });
+// });
 
-app.post("/api/user/register", (req, res) => {
+app.post("/user/register", (req, res) => {
     userService.registerUser(req.body)
     .then((msg) => {
         res.json({ "message": msg });
@@ -62,7 +62,7 @@ app.post("/api/user/register", (req, res) => {
     });
 });
 
-app.post("/api/user/login", (req, res) => {
+app.post("/user/login", (req, res) => {
     userService.checkUser(req.body)
     .then((user) => {
         //payload
@@ -79,7 +79,7 @@ app.post("/api/user/login", (req, res) => {
 });
 
 //Get /api/user/favourites Route with Passport Middleware function as an additional parameter for Jwt Authentication
-app.get("/api/user/favourites", passport.authenticate('jwt', { session: false }),(req, res) => {
+app.get("/user/favourites", passport.authenticate('jwt', { session: false }),(req, res) => {
     userService.getFavourites(req.user._id)
     .then(data => {
         res.json(data);
@@ -89,7 +89,7 @@ app.get("/api/user/favourites", passport.authenticate('jwt', { session: false })
 });
 
 //Put /api/user/favourites/:id Route with Passport Middleware function as an additional parameter for Jwt Authentication
-app.put("/api/user/favourites/:id", passport.authenticate('jwt', { session: false }), (req, res) => {
+app.put("/user/favourites/:id", passport.authenticate('jwt', { session: false }), (req, res) => {
     userService.addFavourite(req.user._id, req.params.id)
     .then(data => {
         res.json(data)
@@ -99,7 +99,7 @@ app.put("/api/user/favourites/:id", passport.authenticate('jwt', { session: fals
 });
 
 //Delete /api/user/favourites/:id Route with Passport Middleware function as an additional parameter for Jwt Authentication
-app.delete("/api/user/favourites/:id", passport.authenticate('jwt', { session: false }),  (req, res) => {
+app.delete("/user/favourites/:id", passport.authenticate('jwt', { session: false }),  (req, res) => {
     userService.removeFavourite(req.user._id, req.params.id)
     .then(data => {
         res.json(data)
@@ -109,7 +109,7 @@ app.delete("/api/user/favourites/:id", passport.authenticate('jwt', { session: f
 });
 
 //Get /api/user/history Route with Passport Middleware function as an additional parameter for Jwt Authentication
-app.get("/api/user/history", passport.authenticate('jwt', { session: false }), (req, res) => {
+app.get("/user/history", passport.authenticate('jwt', { session: false }), (req, res) => {
     userService.getHistory(req.user._id)
     .then(data => {
         res.json(data);
@@ -120,7 +120,7 @@ app.get("/api/user/history", passport.authenticate('jwt', { session: false }), (
 });
 
 //Put /api/user/history/:id Route with Passport Middleware function as an additional parameter for Jwt Authentication
-app.put("/api/user/history/:id", passport.authenticate('jwt', { session: false }), (req, res) => {
+app.put("/user/history/:id", passport.authenticate('jwt', { session: false }), (req, res) => {
     userService.addHistory(req.user._id, req.params.id)
     .then(data => {
         res.json(data)
@@ -130,7 +130,7 @@ app.put("/api/user/history/:id", passport.authenticate('jwt', { session: false }
 });
 
 //Delete /api/user/history Route with Passport Middleware function as an additional parameter for Jwt Authentication
-app.delete("/api/user/history/:id", passport.authenticate('jwt', { session: false }), (req, res) => {
+app.delete("/user/history/:id", passport.authenticate('jwt', { session: false }), (req, res) => {
     userService.removeHistory(req.user._id, req.params.id)
     .then(data => {
         res.json(data)
