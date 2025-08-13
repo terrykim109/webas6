@@ -129,12 +129,8 @@ app.delete("/api/user/history/:id", passport.authenticate('jwt', { session: fals
     })
 });
 
-userService.connect()
-.then(() => {
-    app.listen(HTTP_PORT, () => { console.log("API listening on: " + HTTP_PORT) });
-})
-.catch((err) => {
-    console.log("unable to start the server: " + err);
+userService.connect().catch(err => {
+    console.log("Unable to connect to DB: " + err);
     process.exit();
 });
 
