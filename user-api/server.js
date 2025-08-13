@@ -40,8 +40,12 @@ app.use(passport.initialize());
 
 app.use(express.json());
 app.use(cors());
-app.use(express.static(__dirname + '/public'));
-app.set('views', __dirname + '/views'); 
+// app.use(express.static(__dirname + '/public'));
+// app.set('views', __dirname + '/views'); 
+
+app.get("/api/test", (req, res) => {
+  res.json({ message: "API is working!" });
+});
 
 app.post("/api/user/register", (req, res) => {
     userService.registerUser(req.body)
