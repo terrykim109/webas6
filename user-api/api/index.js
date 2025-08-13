@@ -156,21 +156,6 @@ app.post("/api/user/login", async (req, res) => {
   }
 });
 
-// api/index.js
-app.post("/api/user/refresh", passport.authenticate('jwt', { session: false }), (req, res) => {
-  try {
-    const payload = {
-      _id: req.user._id,
-      userName: req.user.userName
-    };
-    
-    const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: "1h" });
-    res.json({ token });
-  } catch (error) {
-    res.status(500).json({ message: "Token refresh failed" });
-  }
-});
-
 //Get /api/user/favourites Route with Passport Middleware function as an additional parameter for Jwt Authentication
 app.get("/api/user/favourites", passport.authenticate('jwt', { session: false }),(req, res) => {
     userService.getFavourites(req.user._id)
