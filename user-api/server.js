@@ -3,8 +3,7 @@ const app = express();
 const cors = require("cors");
 const dotenv = require("dotenv");
 dotenv.config();
-const UsersDB = require("./user-service.js");
-const userService = new UsersDB();
+const userService = require("./user-service.js");
 
 // Jwt passport
 const jwt = require('jsonwebtoken');
@@ -138,13 +137,11 @@ app.delete("/api/user/history/:id", passport.authenticate('jwt', { session: fals
 
 // For Vercel
 async function vercelHandler(req, res) {
-  // Ensure DB is connected
-  if (!userService.isConnected) {
-    try {
-      await userService.connect();  // connect() sets up the User model
-    } catch (err) {
-      return res.status(500).json({ message: "Unable to connect to DB", error: err.toString() });
-    }
+  // Ensure DB is connected (always call connect; connect() internally caches)
+  try {
+    await userService.connect();  // connect() sets up the User model and caches internally
+  } catch (err) {
+    return res.status(500).json({ message: "Unable to connect to DB", error: err.toString() });
   }
   app(req, res);
 }
