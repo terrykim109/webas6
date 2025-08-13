@@ -133,9 +133,28 @@ app.delete("/api/user/history/:id", passport.authenticate('jwt', { session: fals
     })
 });
 
-userService.connect().catch(err => {
-    console.log("Unable to connect to DB: " + err);
-    process.exit();
-});
+async function initializeDB() {
+  try {
+    await userService.connect();
+  } catch (err) {
+    console.error("Unable to connect to DB:", err);
+    process.exit(1);
+  }
+}
 
-module.exports = app;
+// Vercel handler
+async function vercelHandler(req, res) {
+  if (!userService.isConnected) {
+    await initializeDB();
+  }
+  app(req, res);
+}
+
+if (process.env.VERCEL) {
+  module.exports = vercelHandler;
+} else {
+  initializeDB().then(() => {
+    const PORT = process.env.PORT || 8080;
+    app.listen(PORT, () => console.log(`Server listening on port ${PORT}`));
+  });
+}
