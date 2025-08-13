@@ -84,6 +84,19 @@ app.get("/", (req, res) => {
 //   }
 // });
 
+app.post("/api/user/register", (req, res) => {
+  console.log("[Register] New registration:", req.body);
+  
+  userService.registerUser(req.body)
+    .then((msg) => {
+      console.log("[Register] Success:", msg);
+      res.json({ "message": msg });
+    })
+    .catch((msg) => {
+      console.error("[Register] Error:", msg);
+      res.status(422).json({ "message": msg });
+    });
+});
 
 app.post("/api/user/login", async (req, res) => {
   try {
