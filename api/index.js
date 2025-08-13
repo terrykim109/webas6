@@ -3,7 +3,7 @@ const app = express();
 const cors = require("cors");
 const dotenv = require("dotenv");
 dotenv.config();
-const userService = require("./user-service.js");
+const userService = require("../user-api/user-service.js");
 
 // Jwt passport
 const jwt = require('jsonwebtoken');
@@ -45,6 +45,11 @@ app.use(cors());
 // app.use(express.static(__dirname + '/public'));
 // app.set('views', __dirname + '/views'); 
 
+app.use((req, res, next) => {
+  console.log(`Incoming: ${req.method} ${req.path}`);
+  next();
+});
+
 app.get("/", (req, res) => {
   res.json({ message: "API Listening" });
 });
@@ -53,7 +58,7 @@ app.get("/", (req, res) => {
 //   res.json({ status: "Server is running!" });
 // });
 
-app.post("/user/register", (req, res) => {
+app.post("/api/user/register", (req, res) => {
     userService.registerUser(req.body)
     .then((msg) => {
         res.json({ "message": msg });
@@ -62,7 +67,7 @@ app.post("/user/register", (req, res) => {
     });
 });
 
-app.post("/user/login", (req, res) => {
+app.post("/api/user/login", (req, res) => {
     userService.checkUser(req.body)
     .then((user) => {
         //payload
@@ -79,7 +84,7 @@ app.post("/user/login", (req, res) => {
 });
 
 //Get /api/user/favourites Route with Passport Middleware function as an additional parameter for Jwt Authentication
-app.get("/user/favourites", passport.authenticate('jwt', { session: false }),(req, res) => {
+app.get("/api/user/favourites", passport.authenticate('jwt', { session: false }),(req, res) => {
     userService.getFavourites(req.user._id)
     .then(data => {
         res.json(data);
@@ -89,7 +94,7 @@ app.get("/user/favourites", passport.authenticate('jwt', { session: false }),(re
 });
 
 //Put /api/user/favourites/:id Route with Passport Middleware function as an additional parameter for Jwt Authentication
-app.put("/user/favourites/:id", passport.authenticate('jwt', { session: false }), (req, res) => {
+app.put("/api/user/favourites/:id", passport.authenticate('jwt', { session: false }), (req, res) => {
     userService.addFavourite(req.user._id, req.params.id)
     .then(data => {
         res.json(data)
@@ -99,7 +104,7 @@ app.put("/user/favourites/:id", passport.authenticate('jwt', { session: false })
 });
 
 //Delete /api/user/favourites/:id Route with Passport Middleware function as an additional parameter for Jwt Authentication
-app.delete("/user/favourites/:id", passport.authenticate('jwt', { session: false }),  (req, res) => {
+app.delete("/api/user/favourites/:id", passport.authenticate('jwt', { session: false }),  (req, res) => {
     userService.removeFavourite(req.user._id, req.params.id)
     .then(data => {
         res.json(data)
@@ -109,7 +114,7 @@ app.delete("/user/favourites/:id", passport.authenticate('jwt', { session: false
 });
 
 //Get /api/user/history Route with Passport Middleware function as an additional parameter for Jwt Authentication
-app.get("/user/history", passport.authenticate('jwt', { session: false }), (req, res) => {
+app.get("/api/user/history", passport.authenticate('jwt', { session: false }), (req, res) => {
     userService.getHistory(req.user._id)
     .then(data => {
         res.json(data);
@@ -120,7 +125,7 @@ app.get("/user/history", passport.authenticate('jwt', { session: false }), (req,
 });
 
 //Put /api/user/history/:id Route with Passport Middleware function as an additional parameter for Jwt Authentication
-app.put("/user/history/:id", passport.authenticate('jwt', { session: false }), (req, res) => {
+app.put("/api/user/history/:id", passport.authenticate('jwt', { session: false }), (req, res) => {
     userService.addHistory(req.user._id, req.params.id)
     .then(data => {
         res.json(data)
@@ -130,13 +135,21 @@ app.put("/user/history/:id", passport.authenticate('jwt', { session: false }), (
 });
 
 //Delete /api/user/history Route with Passport Middleware function as an additional parameter for Jwt Authentication
-app.delete("/user/history/:id", passport.authenticate('jwt', { session: false }), (req, res) => {
+app.delete("/api/user/history/:id", passport.authenticate('jwt', { session: false }), (req, res) => {
     userService.removeHistory(req.user._id, req.params.id)
     .then(data => {
         res.json(data)
     }).catch(msg => {
         res.status(422).json({ error: msg });
     })
+});
+
+app.use((req, res) => {
+  res.status(404).json({ 
+    error: "Not found",
+    attemptedPath: req.path,
+    method: req.method
+  });
 });
 
 // For Vercel
@@ -150,13 +163,15 @@ async function vercelHandler(req, res) {
   app(req, res);
 }
 
-if (process.env.VERCEL) {
-  module.exports = vercelHandler;
-} else {
-  userService.connect()
-    .then(() => {
-      const PORT = process.env.PORT || 8080;
-      app.listen(PORT, () => console.log(`Server listening on port ${PORT}`));
-    })
-    .catch(err => console.error("Failed to connect to DB:", err));
-}
+// if (process.env.VERCEL) {
+//   module.exports = vercelHandler;
+// } else {
+//   userService.connect()
+//     .then(() => {
+//       const PORT = process.env.PORT || 8080;
+//       app.listen(PORT, () => console.log(`Server listening on port ${PORT}`));
+//     })
+//     .catch(err => console.error("Failed to connect to DB:", err));
+// }
+
+module.exports = vercelHandler;
