@@ -169,12 +169,22 @@ app.delete(
 );
 
 // For Vercel Deployment
-module.exports = async (req, res) => {
-  try {
-    await userService.connect();
-    app(req, res);
-  } catch (err) {
-    console.log("unable to start the server: " + err);
-    res.status(500).json({ error: "Unable to start server" });
-  }
-};
+// module.exports = async (req, res) => {
+//   try {
+//     await userService.connect();
+//     app(req, res);
+//   } catch (err) {
+//     console.log("unable to start the server: " + err);
+//     res.status(500).json({ error: "Unable to start server" });
+//   }
+// };
+
+// --- Vercel-compatible export ---
+const serverless = require("serverless-http");
+
+// Connect once when the serverless function cold starts
+userService.connect()
+  .then(() => console.log("DB connected"))
+  .catch((err) => console.log("DB connection error:", err));
+
+module.exports = serverless(app);
