@@ -46,8 +46,8 @@ app.use(cors());
 // app.use(express.static(__dirname + '/public'));
 // app.set('views', __dirname + '/views'); 
 
-app.get("/api/test", (req, res) => {
-  res.json({ message: "API is working!" });
+app.get("/", (req, res) => {
+  res.json({ message: "API Listening" });
 });
 
 app.post("/api/user/register", (req, res) => {
@@ -136,23 +136,26 @@ app.delete("/api/user/history/:id", passport.authenticate('jwt', { session: fals
     })
 });
 
-async function initializeDB() {
-  if (!userService.isConnected) {
-    await userService.initialize(process.env.MONGO_URL);
-  }
-}
-
-// Vercel handler
+// For Vercel
 async function vercelHandler(req, res) {
-  await initializeDB();
+  // Ensure DB is connected
+  if (!userService.isConnected) {
+    try {
+      await userService.connect();  // connect() sets up the User model
+    } catch (err) {
+      return res.status(500).json({ message: "Unable to connect to DB", error: err.toString() });
+    }
+  }
   app(req, res);
 }
 
 if (process.env.VERCEL) {
   module.exports = vercelHandler;
 } else {
-  initializeDB().then(() => {
-    const PORT = process.env.PORT || 8080;
-    app.listen(PORT, () => console.log(`Server listening on port ${PORT}`));
-  });
+  userService.connect()
+    .then(() => {
+      const PORT = process.env.PORT || 8080;
+      app.listen(PORT, () => console.log(`Server listening on port ${PORT}`));
+    })
+    .catch(err => console.error("Failed to connect to DB:", err));
 }
