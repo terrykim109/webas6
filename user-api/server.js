@@ -49,6 +49,10 @@ app.get("/", (req, res) => {
   res.json({ message: "API Listening" });
 });
 
+app.get("/api/health", (req, res) => {
+  res.json({ status: "Server is running!" });
+});
+
 app.post("/api/user/register", (req, res) => {
     userService.registerUser(req.body)
     .then((msg) => {
