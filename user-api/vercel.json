@@ -1,14 +1,18 @@
 {
-  "name": "my-vercel-app",
-  "version": "1.0.0",
-  "engines": {
-    "node": "18.x"
+  "version": 2,
+  "functions": {
+    "api/index.js": {
+      "runtime": "@vercel/node"
+    }
   },
-  "scripts": {
-    "start": "node user-api/api/index.js"
-  },
-  "dependencies": {
-    "express": "^4.18.2"
-  }
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "api/index.js"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "api/index.js"
+    }
+  ]
 }
-
