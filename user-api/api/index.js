@@ -48,6 +48,43 @@ app.get("/", (req, res) => {
   res.json({ message: "API Listening" });
 });
 
+// app.post("/api/user/login", async (req, res) => {
+//   try {
+//     const { userName, password } = req.body;
+
+//     if (!userName || !password) {
+//       return res.status(400).json({ message: "Username and password are required" });
+//     }
+
+//     // Find user in DB
+//     const user = await userService.checkUser({ userName, password });
+
+//     if (!user) {
+//       return res.status(401).json({ message: "Invalid username or password" });
+//     }
+
+//     // Create JWT payload
+//     const payload = {
+//       _id: user._id,
+//       userName: user.userName
+//     };
+
+//     // Sign JWT
+//     const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: "1h" });
+
+//     // Return token and message
+//     res.json({
+//       message: "Login successful",
+//       token: token
+//     });
+
+//   } catch (err) {
+//     // Handle errors from userService.checkUser or bcrypt.compare
+//     res.status(422).json({ message: err.toString() });
+//   }
+// });
+
+
 app.post("/api/user/login", async (req, res) => {
   try {
     const { userName, password } = req.body;
@@ -56,7 +93,7 @@ app.post("/api/user/login", async (req, res) => {
       return res.status(400).json({ message: "Username and password are required" });
     }
 
-    // Find user in DB
+    // Check user credentials
     const user = await userService.checkUser({ userName, password });
 
     if (!user) {
@@ -72,15 +109,14 @@ app.post("/api/user/login", async (req, res) => {
     // Sign JWT
     const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: "1h" });
 
-    // Return token and message
+    // Return token along with user info
     res.json({
       message: "Login successful",
       token: token
     });
 
   } catch (err) {
-    // Handle errors from userService.checkUser or bcrypt.compare
-    res.status(422).json({ message: err.toString() });
+    res.status(401).json({ message: err.toString() });
   }
 });
 
