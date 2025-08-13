@@ -3,7 +3,8 @@ const app = express();
 const cors = require("cors");
 const dotenv = require("dotenv");
 dotenv.config();
-const userService = require("./user-service.js");
+const UsersDB = require("./user-service.js");
+const userService = new UsersDB();
 
 // Jwt passport
 const jwt = require('jsonwebtoken');
@@ -134,19 +135,14 @@ app.delete("/api/user/history/:id", passport.authenticate('jwt', { session: fals
 });
 
 async function initializeDB() {
-  try {
-    await userService.connect();
-  } catch (err) {
-    console.error("Unable to connect to DB:", err);
-    process.exit(1);
+  if (!userService.isConnected) {
+    await userService.initialize(process.env.MONGO_URL);
   }
 }
 
 // Vercel handler
 async function vercelHandler(req, res) {
-  if (!userService.isConnected) {
-    await initializeDB();
-  }
+  await initializeDB();
   app(req, res);
 }
 
