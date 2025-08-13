@@ -377,10 +377,25 @@ app.use(passport.initialize());
 app.use(express.json());
 app.use(cors());
 
+// Middleware to log incoming requests
 app.use((req, res, next) => {
   console.log(`Incoming: ${req.method} ${req.path}`);
   next();
 });
+
+// Middleware to connect to the database on every request
+// This ensures that any errors during connection are handled before a route is processed
+app.use(async (req, res, next) => {
+    try {
+        await userService.connect();
+        console.log('Successfully connected to the database.');
+        next();
+    } catch (err) {
+        console.error('An error occurred during database connection:', err);
+        res.status(500).json({ message: "Unable to connect to DB", error: err.toString() });
+    }
+});
+
 
 app.get("/", (req, res) => {
   res.json({ message: "API Listening" });
@@ -478,20 +493,4 @@ app.use((req, res) => {
   });
 });
 
-// A new Vercel handler function to ensure the database is connected
-// before processing requests.
-async function vercelHandler(req, res) {
-  try {
-    console.log('vercelHandler function invoked. Attempting to connect to the database...');
-    await userService.connect();
-    console.log('Successfully connected to the database.');
-  } catch (err) {
-    // This will catch any errors from userService.connect() and log a detailed message
-    console.error('An error occurred during database connection:', err);
-    return res.status(500).json({ message: "Unable to connect to DB", error: err.toString() });
-  }
-  // If the connection is successful, proceed with the Express app
-  app(req, res);
-}
-
-module.exports = vercelHandler;
+module.exports = app;
