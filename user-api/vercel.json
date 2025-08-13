@@ -1,13 +1,13 @@
 {
-  "name": "vercel-minimal-test",
+  "name": "my-vercel-app",
   "version": "1.0.0",
+  "engines": {
+    "node": "18.x"
+  },
   "scripts": {
-    "start": "node server.js"
+    "start": "node user-api/server.js"
   },
   "dependencies": {
     "express": "^4.18.2"
-  },
-  "engines": {
-    "node": "18.x"
   }
 }

@@ -597,7 +597,14 @@ const app = express();
 
 console.log("🚀 Express app created");
 
-// Minimal test route
+// Add this Vercel-specific middleware
+app.use((req, res, next) => {
+  console.log(`👉 Incoming ${req.method} request to: ${req.url}`);
+  console.log(`🌐 Vercel environment: ${process.env.VERCEL ? "Yes" : "No"}`);
+  console.log(`🔍 Request headers: ${JSON.stringify(req.headers)}`);
+  next();
+});
+
 app.get('/test', (req, res) => {
   console.log("✅ /test endpoint hit");
   res.send('Test successful!');
@@ -605,10 +612,16 @@ app.get('/test', (req, res) => {
 
 console.log("🚀 Routes defined");
 
-// Vercel handler
-module.exports = (req, res) => {
-  console.log("🚀 Vercel handler invoked");
-  app(req, res);
-};
+// Health check endpoint
+app.get('/health', (req, res) => {
+  console.log("🩺 Health check called");
+  res.json({
+    status: "ok",
+    vercel: process.env.VERCEL || false,
+    region: process.env.VERCEL_REGION || "local"
+  });
+});
 
 console.log("🚀 BOTTOM OF FILE EXECUTED");
+
+module.exports = app;
