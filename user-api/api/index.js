@@ -14,29 +14,11 @@ let JwtStrategy = passportJWT.Strategy;
 let ExtractJwt = passportJWT.ExtractJwt;
 
 // Jwt options
-// let jwtOptions = {
-//     jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-//     secretOrKey: process.env.JWT_SECRET 
-// };
 let jwtOptions = {
   jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
   secretOrKey: process.env.JWT_SECRET,
-  ignoreExpiration: false // Ensure expiration is checked
+  ignoreExpiration: false 
 };
-
-// Jwt strategy
-// let strategy = new JwtStrategy(jwtOptions, function (jwt_payload, next) {
-//     console.log('payload received', jwt_payload);
-
-//     if (jwt_payload) {
-//         next(null, {
-//             _id: jwt_payload._id,
-//             userName: jwt_payload.userName
-//         });
-//     } else {
-//         next(null, false);
-//     }
-// });
 
 // Jwt strategy
 let strategy = new JwtStrategy(jwtOptions, function (jwt_payload, next) {
@@ -54,8 +36,6 @@ let strategy = new JwtStrategy(jwtOptions, function (jwt_payload, next) {
   });
 });
 
-
-
 passport.use(strategy);
 app.use(passport.initialize());
 
@@ -70,42 +50,6 @@ app.use((req, res, next) => {
 app.get("/", (req, res) => {
   res.json({ message: "API Listening" });
 });
-
-// app.post("/api/user/login", async (req, res) => {
-//   try {
-//     const { userName, password } = req.body;
-
-//     if (!userName || !password) {
-//       return res.status(400).json({ message: "Username and password are required" });
-//     }
-
-//     // Find user in DB
-//     const user = await userService.checkUser({ userName, password });
-
-//     if (!user) {
-//       return res.status(401).json({ message: "Invalid username or password" });
-//     }
-
-//     // Create JWT payload
-//     const payload = {
-//       _id: user._id,
-//       userName: user.userName
-//     };
-
-//     // Sign JWT
-//     const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: "1h" });
-
-//     // Return token and message
-//     res.json({
-//       message: "Login successful",
-//       token: token
-//     });
-
-//   } catch (err) {
-//     // Handle errors from userService.checkUser or bcrypt.compare
-//     res.status(422).json({ message: err.toString() });
-//   }
-// });
 
 app.post("/api/user/register", (req, res) => {
   console.log("[Register] New registration:", req.body);
@@ -129,23 +73,21 @@ app.post("/api/user/login", async (req, res) => {
       return res.status(400).json({ message: "Username and password are required" });
     }
 
-    // Check user credentials
+    // check user credentials
     const user = await userService.checkUser({ userName, password });
 
     if (!user) {
       return res.status(401).json({ message: "Invalid username or password" });
     }
 
-    // Create JWT payload
     const payload = {
       _id: user._id,
       userName: user.userName
     };
 
-    // Sign JWT
     const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: "1h" });
 
-    // Return token along with user info
+    // return token with user info
     res.json({
       message: "Login successful",
       token: token
@@ -167,19 +109,9 @@ app.get("/api/user/favourites", passport.authenticate('jwt', { session: false })
 });
 
 //Put /api/user/favourites/:id Route with Passport Middleware function as an additional parameter for Jwt Authentication
-// app.put("/api/user/favourites/:id", passport.authenticate('jwt', { session: false }), (req, res) => {
-//     userService.addFavourite(req.user._id, req.params.id)
-//     .then(data => {
-//         res.json(data)
-//     }).catch(msg => {
-//         res.status(422).json({ error: msg });
-//     })
-// });
-// PUT /api/user/favourites/:id
 app.put("/api/user/favourites/:id", passport.authenticate('jwt', { session: false }), async (req, res) => {
   try {
     const updatedFavourites = await userService.addFavourite(req.user._id, req.params.id);
-    // return the updated array
     res.json(updatedFavourites);
   } catch (err) {
     res.status(422).json({ error: err.message });
@@ -188,19 +120,10 @@ app.put("/api/user/favourites/:id", passport.authenticate('jwt', { session: fals
 
 
 //Delete /api/user/favourites/:id Route with Passport Middleware function as an additional parameter for Jwt Authentication
-// app.delete("/api/user/favourites/:id", passport.authenticate('jwt', { session: false }),  (req, res) => {
-//     userService.removeFavourite(req.user._id, req.params.id)
-//     .then(data => {
-//         res.json(data)
-//     }).catch(msg => {
-//         res.status(422).json({ error: msg });
-//     })
-// });
-// DELETE /api/user/favourites/:id
 app.delete("/api/user/favourites/:id", passport.authenticate('jwt', { session: false }), async (req, res) => {
   try {
     const updatedFavourites = await userService.removeFavourite(req.user._id, req.params.id);
-    res.json(updatedFavourites); // MUST return array of objectIDs
+    res.json(updatedFavourites); 
   } catch (err) {
     res.status(422).json({ error: err.message });
   }
@@ -219,36 +142,20 @@ app.get("/api/user/history", passport.authenticate('jwt', { session: false }), (
 });
 
 //Put /api/user/history/:id Route with Passport Middleware function as an additional parameter for Jwt Authentication
-// app.put("/api/user/history/:id", passport.authenticate('jwt', { session: false }), (req, res) => {
-//     userService.addHistory(req.user._id, req.params.id)
-//     .then(data => {
-//         res.json(data)
-//     }).catch(msg => {
-//         res.status(422).json({ error: msg });
-//     })
-// });
 app.put("/api/user/history/:id", passport.authenticate('jwt', { session: false }), async (req, res) => {
   try {
     const updatedHistory = await userService.addHistory(req.user._id, req.params.id);
-    res.json(updatedHistory); // MUST be array
+    res.json(updatedHistory); 
   } catch (err) {
     res.status(422).json({ error: err.message });
   }
 });
 
 //Delete /api/user/history Route with Passport Middleware function as an additional parameter for Jwt Authentication
-// app.delete("/api/user/history/:id", passport.authenticate('jwt', { session: false }), (req, res) => {
-//     userService.removeHistory(req.user._id, req.params.id)
-//     .then(data => {
-//         res.json(data)
-//     }).catch(msg => {
-//         res.status(422).json({ error: msg });
-//     })
-// });
 app.delete("/api/user/history/:id", passport.authenticate('jwt', { session: false }), async (req, res) => {
   try {
     const updatedHistory = await userService.removeHistory(req.user._id, req.params.id);
-    res.json(updatedHistory); // MUST be array
+    res.json(updatedHistory); 
   } catch (err) {
     res.status(422).json({ error: err.message });
   }
