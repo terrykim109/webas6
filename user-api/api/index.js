@@ -167,24 +167,45 @@ app.get("/api/user/favourites", passport.authenticate('jwt', { session: false })
 });
 
 //Put /api/user/favourites/:id Route with Passport Middleware function as an additional parameter for Jwt Authentication
-app.put("/api/user/favourites/:id", passport.authenticate('jwt', { session: false }), (req, res) => {
-    userService.addFavourite(req.user._id, req.params.id)
-    .then(data => {
-        res.json(data)
-    }).catch(msg => {
-        res.status(422).json({ error: msg });
-    })
+// app.put("/api/user/favourites/:id", passport.authenticate('jwt', { session: false }), (req, res) => {
+//     userService.addFavourite(req.user._id, req.params.id)
+//     .then(data => {
+//         res.json(data)
+//     }).catch(msg => {
+//         res.status(422).json({ error: msg });
+//     })
+// });
+// PUT /api/user/favourites/:id
+app.put("/api/user/favourites/:id", passport.authenticate('jwt', { session: false }), async (req, res) => {
+  try {
+    const updatedFavourites = await userService.addFavourite(req.user._id, req.params.id);
+    // return the updated array
+    res.json(updatedFavourites);
+  } catch (err) {
+    res.status(422).json({ error: err.message });
+  }
 });
 
+
 //Delete /api/user/favourites/:id Route with Passport Middleware function as an additional parameter for Jwt Authentication
-app.delete("/api/user/favourites/:id", passport.authenticate('jwt', { session: false }),  (req, res) => {
-    userService.removeFavourite(req.user._id, req.params.id)
-    .then(data => {
-        res.json(data)
-    }).catch(msg => {
-        res.status(422).json({ error: msg });
-    })
+// app.delete("/api/user/favourites/:id", passport.authenticate('jwt', { session: false }),  (req, res) => {
+//     userService.removeFavourite(req.user._id, req.params.id)
+//     .then(data => {
+//         res.json(data)
+//     }).catch(msg => {
+//         res.status(422).json({ error: msg });
+//     })
+// });
+// DELETE /api/user/favourites/:id
+app.delete("/api/user/favourites/:id", passport.authenticate('jwt', { session: false }), async (req, res) => {
+  try {
+    const updatedFavourites = await userService.removeFavourite(req.user._id, req.params.id);
+    res.json(updatedFavourites); // MUST return array of objectIDs
+  } catch (err) {
+    res.status(422).json({ error: err.message });
+  }
 });
+
 
 //Get /api/user/history Route with Passport Middleware function as an additional parameter for Jwt Authentication
 app.get("/api/user/history", passport.authenticate('jwt', { session: false }), (req, res) => {
@@ -198,23 +219,39 @@ app.get("/api/user/history", passport.authenticate('jwt', { session: false }), (
 });
 
 //Put /api/user/history/:id Route with Passport Middleware function as an additional parameter for Jwt Authentication
-app.put("/api/user/history/:id", passport.authenticate('jwt', { session: false }), (req, res) => {
-    userService.addHistory(req.user._id, req.params.id)
-    .then(data => {
-        res.json(data)
-    }).catch(msg => {
-        res.status(422).json({ error: msg });
-    })
+// app.put("/api/user/history/:id", passport.authenticate('jwt', { session: false }), (req, res) => {
+//     userService.addHistory(req.user._id, req.params.id)
+//     .then(data => {
+//         res.json(data)
+//     }).catch(msg => {
+//         res.status(422).json({ error: msg });
+//     })
+// });
+app.put("/api/user/history/:id", passport.authenticate('jwt', { session: false }), async (req, res) => {
+  try {
+    const updatedHistory = await userService.addHistory(req.user._id, req.params.id);
+    res.json(updatedHistory); // MUST be array
+  } catch (err) {
+    res.status(422).json({ error: err.message });
+  }
 });
 
 //Delete /api/user/history Route with Passport Middleware function as an additional parameter for Jwt Authentication
-app.delete("/api/user/history/:id", passport.authenticate('jwt', { session: false }), (req, res) => {
-    userService.removeHistory(req.user._id, req.params.id)
-    .then(data => {
-        res.json(data)
-    }).catch(msg => {
-        res.status(422).json({ error: msg });
-    })
+// app.delete("/api/user/history/:id", passport.authenticate('jwt', { session: false }), (req, res) => {
+//     userService.removeHistory(req.user._id, req.params.id)
+//     .then(data => {
+//         res.json(data)
+//     }).catch(msg => {
+//         res.status(422).json({ error: msg });
+//     })
+// });
+app.delete("/api/user/history/:id", passport.authenticate('jwt', { session: false }), async (req, res) => {
+  try {
+    const updatedHistory = await userService.removeHistory(req.user._id, req.params.id);
+    res.json(updatedHistory); // MUST be array
+  } catch (err) {
+    res.status(422).json({ error: err.message });
+  }
 });
 
 app.use((req, res) => {
